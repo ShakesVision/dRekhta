@@ -1,0 +1,34 @@
+{
+    "version": "1.0.0",
+    "name": "rekhta-scraper",
+    "app-name": "dRekhta",
+    "package-name": "udl",
+    "project-type": "webview",
+    "icon": "./assets/icon/icon.png",
+    "dist-path": "./dist",
+    "permission": [
+        "android.permission.INTERNET",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_EXTERNAL_STORAGE"
+    ],
+    "description": "Simple way to save all the data of a single poet/author from rekhta.",
+    "main": "main.js",
+    "scripts": {
+        "start:dev": "node .",
+        "build": "androidjs build"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "androidjs": "^2.0.4",
+        "node-fetch-retry": "^1.1.0",
+        "node-html-parser": "^5.2.0"
+    },
+    "project-name": "rekhta-scraper",
+    "theme": {
+        "fullScreen": true,
+        "colorAccent": "#1976D2",
+        "colorPrimary": "#1976D2",
+        "colorPrimaryDark": "#1976D2"
+    }
+}

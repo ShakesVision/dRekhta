@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rekhta Scraper</title>
+    <link rel="icon" type="image/x-icon" href="../assets/icon/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="text/javascript" src="../assets/androidjs.js"></script>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="../assets/bootstrap.min.css" />
+  </head>
+  <body>
+    <section>
+      <h1>Rekhta Scraper</h1>
+      <textarea
+        class="form-control"
+        name="links"
+        placeholder="Paste all the links here..."
+        id="linksTxtArea"
+        rows="6"
+      ></textarea>
+      <input
+        id="fileNameInput"
+        type="text"
+        placeholder="File name..."
+        class="form-control mt-2"
+      />
+      <div class="my-2 button-group">
+        <button onclick="scrape()" type="button" class="btn btn-dark">
+          Start Fetching
+        </button>
+        <button onclick="readFile()" type="button" class="btn btn-success">
+          Read file
+        </button>
+        <button onclick="clearTxt()" type="button" class="btn btn-light">
+          Clear
+        </button>
+      </div>
+    </section>
+    <section>
+      <h4>Progress</h4>
+      <textarea
+        class="form-control"
+        placeholder="Logs will appear here..."
+        id="logs"
+        rows="5"
+        style="font-size: 12px"
+      ></textarea>
+    </section>
+    <section>
+      <h4>File Contents</h4>
+      <div class="file-heading"></div>
+      <div class="file-content"></div>
+      <div class="navigation-btns">
+        <button onclick="back()" type="button" class="btn btn-light">
+          Previous
+        </button>
+        <input type="text" id="content-arr-index"> / <label class="totalItems"></label>
+        <button onclick="forward()" type="button" class="btn btn-light">
+          Next
+        </button>
+      </div>
+    </section>
+  </body>
+  <script>
+    var linksTextAreaEl = document.querySelector("#linksTxtArea");
+    var fileNameInputEl = document.querySelector("#fileNameInput");
+    var logEl = document.querySelector("#logs");
+    var fileContentArray = [];
+    function clearTxt() {
+      linksTextAreaEl.value = "";
+      fileNameInputEl.value = "";
+      logEl.value = "";
+    }
+    function scrape() {
+      var links = linksTextAreaEl.value
+        .replace(/^\s*[\r\n]/gm, "")
+        .trim()
+        .split("\n");
+      var dir = app.getPath("downloads");
+      var name = fileNameInputEl.value;
+      var data = { dir, name, links };
+      front.send("scrape", data);
+    }
+    function readFile() {
+      var data = app.getPath("downloads") + "|" + fileNameInputEl.value;
+      front.send("read", data);
+      document.querySelector('.file-heading').innerText = fileNameInputEl.value;
+      document.querySelector('#content-arr-index').value = 0;
+    }
+    function back() {      
+      var i = parseInt(document.querySelector('#content-arr-index').value)
+      document.querySelector('.file-content').innerText = fileContentArray[i-1];
+      if(i>0) document.querySelector('#content-arr-index').value = i-1
+    }
+    function forward() {      
+      var i = parseInt(document.querySelector('#content-arr-index').value)
+      i++;
+      document.querySelector('.file-content').innerText = fileContentArray[i];
+      document.querySelector('#content-arr-index').value = i;
+    }
+    // download-return
+    front.on("download-end", (msg) => {
+      logEl.value +=
+        logEl.value +
+        ("\nDownload Complete at index:" +
+          msg.i +
+          ". Total fetched URLs: " +
+          msg.total);
+          alert('Download Complete!' + 'Total items saved: ' + msg.total)
+    });
+
+    front.on("download-start", (msg) => {
+      console.log(msg);
+      logEl.value += msg + "\n";
+    });
+
+    front.on("read-return", (data) => {
+      console.log(data);
+      fileContentArray = [];
+      fileContentArray = data;
+      document.querySelector('.file-content').innerText = fileContentArray[0];
+      document.querySelector('label.totalItems').innerText = fileContentArray.length;
+    });
+
+    front.on("error-log", (msg) => {
+      alert(`error : ${msg}`);
+      console.log(`error : ${msg}`);
+    });
+
+    // test for in window
+    if (window.android == undefined) {
+      console.log("test");
+      var app = {};
+      app.getPath = function () {
+        return "window-test";
+      };
+    }
+  </script>
+</html>
