@@ -1,3 +1,58 @@
-section{
+@font-face {
+  font-family: "Mehr";
+  src: url("https://cdn.rawgit.com/shakesvision/MehrNastaleeq/07997528/MehrNastaliqWeb.woff") format("woff");
+  unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF;
+}
+* {
+  font-family: Mehr, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif, serif;
+}
+
+section {
   margin: 20px;
+}
+#content-arr-index {
+  width: 50px;
+  text-align: center;
+}
+.file-heading {
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.alert {
+  opacity: 0;
+}
+/*Poetry styling*/
+.sher,
+.sher td,
+.sher2,
+.sher2 td {
+  text-align: justify;
+  text-align-last: justify;
+  -o-text-align-last: justify;
+  -ms-text-align-last: justify;
+  -moz-text-align-last: justify;
+  -webkit-text-align-last: justify;
+}
+
+.sher,
+.sher2 {
+  margin: 0 auto;
+  direction: rtl;
+  line-height: 1.5em;
+}
+
+.sher2 td {
+  width: 46%;
+}
+
+.sher2 tr td:nth-child(2) {
+  width: 10%;
+}
+
+.sher tr td {
+  padding-bottom: 5px;
+}
+
+.sher tr:nth-child(2n) td {
+  padding-bottom: 15px;
 }

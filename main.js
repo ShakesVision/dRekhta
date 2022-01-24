@@ -72,8 +72,8 @@ back.on('scrape', (data) => {
     }
 })
 
-back.on('read', (data) => {
-    var [dir, name] = data.split('|');
+back.on('read', (d) => {
+    var [dir, name] = d.split('|');
     if (dir == 'window-test')
         dir = process.cwd();
     dir = `${dir}/dRekhta/`;
@@ -87,8 +87,10 @@ back.on('read', (data) => {
         }
     }
     readFile(`${dir}/${name}.txt`).then(d => {
-        d = d.replace(/\\r\\n/g, '\n')
-        back.send('read-return', d.split('\n\n'));
-        console.log(d.split('\n\n').length)
+        //remove duplicate newlines and convert to array
+        d = d.replace(/\\r\\n/g, '\n').split('\n\n');
+        if (d[d.length - 1] === '\n') d.pop();
+        back.send('read-return', d);
+        console.log(d.length)
     })
 })

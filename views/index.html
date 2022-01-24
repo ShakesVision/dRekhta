@@ -45,26 +45,32 @@
         rows="5"
         style="font-size: 12px"
       ></textarea>
+      <div class="alert alert-success" role="alert">Download Complete!</div>
     </section>
-    <section>
+    <section style="text-align: center">
       <h4>File Contents</h4>
-      <div class="file-heading"></div>
-      <div class="file-content"></div>
-      <div class="navigation-btns">
-        <button onclick="back()" type="button" class="btn btn-light">
-          Previous
-        </button>
-        <input type="text" id="content-arr-index"> / <label class="totalItems"></label>
+      <div class="file-heading">File name</div>
+      <div class="navigation-btns my-2">
+        <button onclick="back()" type="button" class="btn btn-light">🢠</button>
+        <input type="number" id="content-arr-index" /> /
+        <label class="totalItems"></label>
         <button onclick="forward()" type="button" class="btn btn-light">
-          Next
+          🢡
         </button>
       </div>
+      <div class="shareBtn">
+        <button type="button" onclick="share()" class="btn btn-success">
+          Share on WhatsApp
+        </button>
+      </div>
+      <div class="file-content sher"></div>
     </section>
   </body>
   <script>
     var linksTextAreaEl = document.querySelector("#linksTxtArea");
     var fileNameInputEl = document.querySelector("#fileNameInput");
     var logEl = document.querySelector("#logs");
+    var contentArrIndexEl = document.querySelector("#content-arr-index");
     var fileContentArray = [];
     function clearTxt() {
       linksTextAreaEl.value = "";
@@ -72,6 +78,7 @@
       logEl.value = "";
     }
     function scrape() {
+      logEl.value = "";
       var links = linksTextAreaEl.value
         .replace(/^\s*[\r\n]/gm, "")
         .trim()
@@ -84,19 +91,40 @@
     function readFile() {
       var data = app.getPath("downloads") + "|" + fileNameInputEl.value;
       front.send("read", data);
-      document.querySelector('.file-heading').innerText = fileNameInputEl.value;
-      document.querySelector('#content-arr-index').value = 0;
+      document.querySelector(".file-heading").innerText = fileNameInputEl.value;
+      contentArrIndexEl.value = 1;
     }
-    function back() {      
-      var i = parseInt(document.querySelector('#content-arr-index').value)
-      document.querySelector('.file-content').innerText = fileContentArray[i-1];
-      if(i>0) document.querySelector('#content-arr-index').value = i-1
+    function back() {
+      var i = parseInt(contentArrIndexEl.value);
+      i--;
+      if (i > 0) {
+        showFileContent(i);
+      }
     }
-    function forward() {      
-      var i = parseInt(document.querySelector('#content-arr-index').value)
+    function forward() {
+      var i = parseInt(contentArrIndexEl.value);
       i++;
-      document.querySelector('.file-content').innerText = fileContentArray[i];
-      document.querySelector('#content-arr-index').value = i;
+      if (i < fileContentArray.length + 1) {
+        showFileContent(i);
+      }
+    }
+    function showFileContent(i) {
+      document.querySelector(".file-content").innerHTML = tabulate(
+        fileContentArray[i - 1]
+      );
+      contentArrIndexEl.value = i;
+    }
+    contentArrIndexEl.addEventListener("keyup", (e) => {
+      if (e.keyCode === 13) {
+        e.preventDefault();
+        document.querySelector(".file-content").innerHTML = tabulate(
+          fileContentArray[parseInt(contentArrIndexEl.value) - 1]
+        );
+      }
+    });
+    function share() {
+      var text = fileContentArray[parseInt(contentArrIndexEl.value) - 1];
+      location.href = `https://wa.me?text=${encodeURIComponent(text)}`;
     }
     // download-return
     front.on("download-end", (msg) => {
@@ -106,7 +134,11 @@
           msg.i +
           ". Total fetched URLs: " +
           msg.total);
-          alert('Download Complete!' + 'Total items saved: ' + msg.total)
+      setTimeout(() => {
+        document.querySelector(".alert").style.opacity = 1;
+      }, 3000);
+      // alert("Download Complete!" + "Total items saved: " + msg.total);
+      readFile();
     });
 
     front.on("download-start", (msg) => {
@@ -118,8 +150,11 @@
       console.log(data);
       fileContentArray = [];
       fileContentArray = data;
-      document.querySelector('.file-content').innerText = fileContentArray[0];
-      document.querySelector('label.totalItems').innerText = fileContentArray.length;
+      document.querySelector(".file-content").innerHTML = tabulate(
+        fileContentArray[0]
+      );
+      document.querySelector("label.totalItems").innerText =
+        fileContentArray.length;
     });
 
     front.on("error-log", (msg) => {
@@ -134,6 +169,30 @@
       app.getPath = function () {
         return "window-test";
       };
+    }
+  </script>
+  <script>
+    var elements = document.getElementsByClassName("sher");
+    Array.from(elements).forEach((e) => {
+      e.style.whiteSpace = "pre-wrap";
+      e.innerHTML = tabulate(e.innerText);
+    });
+    var elements2 = document.getElementsByClassName("sher2");
+    Array.from(elements2).forEach((e) => {
+      e.style.whiteSpace = "pre-wrap";
+      e.innerHTML = tabulate2(e.innerText);
+    });
+
+    function tabulate(strIn) {
+      strIn = strIn
+        .replace(/[\r\n]+/g, "\n")
+        .replace(/^\s+|\s+$/g, "")
+        .replace(/\r?\n|\r/g, "</td></tr>\n<tr><td>");
+      if (strIn.length > 0)
+        return (
+          '<table class="sher">\n<tr><td>' + strIn + "</td></tr>\n</table>"
+        );
+      else return tabulate("یہاں اک شعر ہونا چاہیے تھا!");
     }
   </script>
 </html>
