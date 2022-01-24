@@ -6,7 +6,7 @@ const back = require('androidjs').back;
 console.log('Backend server started...')
 
 back.on('scrape', (data) => {
-    var { dir, name, links } = data;
+    var { dir, name, links, format } = data;
     back.send('download-start', 'Fetching ' + links.length + ' links has been started')
     if (dir == 'window-test')
         dir = process.cwd();
@@ -36,20 +36,26 @@ back.on('scrape', (data) => {
                 var document = $.parse(text);
 
                 //PROSE ONLY            
-                /* var author = document.querySelector('.authorAddFavorite').rawText;            
-                var a = new URL(url);
-                var link = a.pathname.replace(/\/.+\//, '').replace(/-stories$/, '');
-                var description = link.split("-").map(e => e.charAt(0).toUpperCase() + e.substring(1)).join(" ") + " in Urdu Unicode text.\n" + author + ' کا افسانہ "' + heading + '" اردو یونیکوڈ متن میں۔'; */
+                if (format === 2) {
+                    var author = document.querySelector('.authorAddFavorite').rawText;
+                    var a = new URL(url);
+                    var link = a.pathname.replace(/\/.+\//, '').replace(/-stories$/, '');
+                    var description = link.split("-").map(e => e.charAt(0).toUpperCase() + e.substring(1)).join(" ") + " in Urdu Unicode text.\n" + author + ' کا افسانہ "' + heading + '" اردو یونیکوڈ متن میں۔';
+                }
                 //COMMON
                 var heading = document.querySelector('h1').rawText;
                 var content = '';
                 document.querySelectorAll('.pMC p').forEach(p => content += p.rawText + '\n');
                 //WRITE PROSE
-                /* var o = { title: heading + " — " + author, text: content, label: "افسانے,مصنف:" + author, description, link,url };
-                var result = JSON.stringify(o);            
-                writeStream.write((i + 1) + result + ',\n'); */
+                if (format === 2) {
+                    var o = { title: heading + " — " + author, text: content, label: "افسانے,مصنف:" + author, description, link, url };
+                    var result = JSON.stringify(o);
+                    writeStream.write(result + ',\n');
+                }
                 //WRITE POETRY
-                writeStream.write(content + '\n\n');
+                if (format === 1) {
+                    writeStream.write(content + '\n\n');
+                }
                 passedUrls.push(i);
                 back.send('download-start', (i + 1) + '. \t' + heading)
                 console.log((i + 1), heading);

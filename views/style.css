@@ -21,6 +21,15 @@ section {
 .alert {
   opacity: 0;
 }
+.navigation-btns {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  column-gap: 5px;
+}
+.navigation-btns button {
+  font-weight: 600;
+}
 /*Poetry styling*/
 .sher,
 .sher td,
