@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Rekhta Scraper</title>
+    <title>Rekhta Content Scraper</title>
     <link rel="icon" type="image/x-icon" href="../assets/icon/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script type="text/javascript" src="../assets/androidjs.js"></script>
@@ -10,7 +10,7 @@
   </head>
   <body>
     <section>
-      <h1>Rekhta Scraper</h1>
+      <h1>Rekhta Content Scraper</h1>
       <textarea
         class="form-control"
         name="links"
@@ -109,7 +109,7 @@
       logEl.value = "";
     }
     function setActive(el) {
-      document.querySelectorAll('.toggleLabels').forEach((labelEl) => {
+      document.querySelectorAll(".toggleLabels").forEach((labelEl) => {
         labelEl.classList.remove("active");
       });
       el.parentElement.classList.add("active");
@@ -120,12 +120,25 @@
       if (ctx.value === 1) format = 1;
       else format = 2;
     }
+    function isValidHttpUrl(string) {
+      let url;
+      try {
+        url = new URL(string);
+      } catch (_) {
+        return false;
+      }
+      return url.protocol === "http:" || url.protocol === "https:";
+    }
     function scrape() {
       logEl.value = "";
       var links = linksTextAreaEl.value
         .replace(/^\s*[\r\n]/gm, "")
         .trim()
         .split("\n");
+      if (!isValidHttpUrl(links[0]) || !fileNameInputEl.value) {
+        alert('Only URLs are allowed! File name is compulsary.');
+        return;
+      }
       var dir = app.getPath("downloads");
       var name = fileNameInputEl.value;
       var data = { dir, name, links, format };
@@ -172,9 +185,7 @@
     });
     function share() {
       var text = fileContentArray[parseInt(contentArrIndexEl.value) - 1];
-      location.href = `https://whatsapp://send?text=${encodeURIComponent(
-        text
-      )}`;
+      window.location.href = `whatsapp://send?text=${encodeURIComponent(text)}`;
     }
     function copyText() {
       var text = fileContentArray[parseInt(contentArrIndexEl.value) - 1];
