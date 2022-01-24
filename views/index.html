@@ -10,7 +10,7 @@
   </head>
   <body>
     <section>
-      <h1>Rekhta Content Scraper</h1>
+      <h1>dRekhta</h1>
       <textarea
         class="form-control"
         name="links"
@@ -86,9 +86,9 @@
         <button onclick="forward()" type="button" class="btn">&gt;</button>
       </div>
       <div class="shareBtn">
-        <button type="button" onclick="share()" class="btn btn-success">
+        <!-- <button type="button" onclick="share()" class="btn btn-success">
           Share on WhatsApp
-        </button>
+        </button> -->
         <button type="button" onclick="copyText()" class="btn btn-primary">
           Copy
         </button>
@@ -189,6 +189,7 @@
     }
     function copyText() {
       var text = fileContentArray[parseInt(contentArrIndexEl.value) - 1];
+      text = text.trim().replace(/[^\S\r\n]+/g,' ').replace(/ +/g,' ').replace(/\n? \n/g,'\n').replace(/\n+/g,'\n').replace(/(.*\r?\n)(.*\r?\n)/g,'$1$2\n');
       var el = document.createElement("textarea");
       el.value = text;
       document.body.appendChild(el);
