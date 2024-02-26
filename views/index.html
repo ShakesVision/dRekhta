@@ -32,7 +32,6 @@
               name="options"
               id="option1"
               autocomplete="off"
-              checked
               value="1"
               onclick="setFormat(this)"
             />
@@ -48,6 +47,18 @@
               onclick="setFormat(this)"
             />
             Prose
+          </label>
+          <label class="btn btn-secondary toggleLabels">
+            <input
+              type="radio"
+              name="options"
+              id="option3"
+              autocomplete="off"
+              value="3"
+              checked
+              onclick="setFormat(this)"
+            />
+            Book
           </label>
         </div>
       </div>
@@ -102,7 +113,8 @@
     var logEl = document.querySelector("#logs");
     var contentArrIndexEl = document.querySelector("#content-arr-index");
     var fileContentArray = [];
-    var format = 1;
+    var format = 3;
+    setActive(document.querySelector("#option3"));
     function clearTxt() {
       linksTextAreaEl.value = "";
       fileNameInputEl.value = "";
@@ -118,7 +130,8 @@
       setActive(ctx);
       console.log("Format chosen:" + ctx.value);
       if (ctx.value === 1) format = 1;
-      else format = 2;
+      else if (ctx.value === 2) format = 2;
+      else format = 3;
     }
     function isValidHttpUrl(string) {
       let url;
@@ -229,6 +242,10 @@
       );
       document.querySelector("label.totalItems").innerText =
         fileContentArray.length;
+    });
+
+    front.on("book-download", (data) => {
+      console.log(data);
     });
 
     front.on("error-log", (msg) => {

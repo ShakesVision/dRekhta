@@ -21,8 +21,10 @@
     "license": "ISC",
     "dependencies": {
         "androidjs": "^2.0.4",
+        "axios": "^1.6.7",
         "node-fetch-retry": "^1.1.0",
-        "node-html-parser": "^5.2.0"
+        "node-html-parser": "^5.2.0",
+        "sharp": "^0.32.6"
     },
     "project-name": "rekhta-scraper",
     "theme": {

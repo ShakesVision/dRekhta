@@ -2,6 +2,9 @@ const fetch = require('node-fetch-retry');
 const $ = require('node-html-parser');
 const fs = require('fs');
 const back = require('androidjs').back;
+const axios = require('axios');
+path = require("path");
+
 
 console.log('Backend server started...')
 
@@ -35,6 +38,15 @@ back.on('scrape', (data) => {
                 const text = await response.text();
                 var document = $.parse(text);
 
+                //BOOK DOWNLOAD ONLY                
+                if (format === 3) {
+                    const bkData = bookDownload(url, document);
+                    back.send('book-download', {
+                        "message": "success",
+                        bkData
+                    })
+                    return;
+                }
                 //PROSE ONLY            
                 if (format === 2) {
                     var author = document.querySelector('.authorAddFavorite').rawText;
@@ -65,7 +77,7 @@ back.on('scrape', (data) => {
                     back.send('download-end', { i, total: passedUrls.length })
                 if (count == URLs.length)
                     writeStream.write((document.querySelector('a.ghazalAuthor').rawText.trim()) + URLs.length)
-                // passedUrls = passedUrls.sort((a,b)=>a-b);        
+                // passedUrls = passedUrls.sort((a,b)=>a-b);
             }
             catch (err) {
                 console.log(err); // TypeError: failed to fetch
@@ -94,9 +106,92 @@ back.on('read', (d) => {
     }
     readFile(`${dir}/${name}.txt`).then(d => {
         //remove duplicate newlines and convert to array
-        d = d.replace(/\\r\\n/g, '\n').split('\n\n');
-        if (d[d.length - 1] === '\n') d.pop();
-        back.send('read-return', d);
-        console.log(d.length)
+        if (d) {
+            d = d.replace(/\\r\\n/g, '\n').split('\n\n');
+            if (d[d.length - 1] === '\n') d.pop();
+            back.send('read-return', d);
+            console.log(d.length)
+        }
     })
 })
+
+function FindTextBetween(source, start, end) {
+    return source.split(start)[1].split(end)[0].trim();
+}
+function StringToStringArray(input) {
+    return input.split(",").map(item => item.replace(/"/g, "").trim());
+}
+
+function bookDownload(url, document) {
+    console.log(url);
+    var _bookUrl = url;
+    var pageContents = document + ''; //or document.head.innerHTML as scripts are only in <head>.
+    var bookName = document.querySelector('span.c-book-name').innerText.trim();
+    console.log(bookName);
+    var author = document.querySelector('span.faded').innerText.replace(/\r?\n/g, '').replace(/ +/g, ' ').replace('by ', '').trim();
+    var fileName = `${bookName} by ${author}`.trim().replace(/ +/g, ' ').replace(/ /g, '-');
+    //var BookName = actualUrl.toLowerCase().replace("'/ebooks/", "").replace(/-ebooks'/g, '').trim().replace(/\//g, '-');
+
+    var _bookId = FindTextBetween(pageContents, `var bookId = "`, `";`);
+    var actualUrl = FindTextBetween(pageContents, "var actualUrl =", ";");
+
+    var _pageCount = parseInt(FindTextBetween(pageContents, "var totalPageCount =", ";").trim());
+    var pages = StringToStringArray(FindTextBetween(pageContents, "var pages = [", "];"));
+    var pageIds = StringToStringArray(FindTextBetween(pageContents, "var pageIds = [", "];"));
+    console.table({ bookName, author, fileName, _bookId, _bookUrl });
+
+    //Fetching parameters
+    var scrambledImages = [];
+    var keys = [];
+    var scrambleMap = [];
+    for (var i = 0; i < _pageCount; i++) {
+        var imgUrl = `https://ebooksapi.rekhta.org/images/${_bookId}/${pages[i]}`;
+        //   var key = `https://ebooksapi.rekhta.org/api_getebookpagebyid/?pageid=${pageIds[i]}`;
+        var key = `https://ebooksapi.rekhta.org/api_getebookpagebyid_websiteapp/?wref=from-site&&pgid=${pageIds[i]}`;
+        scrambledImages.push(imgUrl);
+        keys.push(key);
+        scrambleMap.push({ imgUrl, key });
+        //   Download these images
+        // download(imgUrl, key, function () {
+        //     console.log('done');
+        // });
+        const SUB_FOLDER = `dRekhta/${fileName}`;
+        const IMG_NAME = pages[i];
+        dlImage(scrambleMap[i].imgUrl, SUB_FOLDER, IMG_NAME);
+    }
+    var data = { bookName, author, _pageCount, _bookUrl, fileName, _bookId, actualUrl, pages, pageIds, scrambleMap };
+    return data;
+}
+
+// function download_image(url, dir) {
+//     axios({
+//         method: "GET",
+//         url,
+//         responseType: "stream"
+//     }).then(res => {
+//         res.data.pipe(fs.createWriteStream(dir));
+//         res.data.on("end", () => {
+//             console.log("download complete");
+//         });
+//     });
+// }
+
+/**
+ * this will dl.image
+ * @param {*} reqUrl
+ */
+function dlImage(reqUrl, SUB_FOLDER, IMG_NAME) {
+    !fs.existsSync(`${SUB_FOLDER}`) && fs.mkdirSync(`${SUB_FOLDER}`, { recursive: true })
+    const dir = path.resolve(__dirname, SUB_FOLDER, IMG_NAME);
+
+    axios({
+        method: "GET",
+        url: reqUrl,
+        responseType: "stream"
+    }).then(res => {
+        res.data.pipe(fs.createWriteStream(dir));
+        res.data.on("end", () => {
+            console.log("download complete");
+        });
+    });
+}
