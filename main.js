@@ -45,7 +45,8 @@ back.on('scrape', (data) => {
                     back.send('book-download', {
                         "message": "success",
                         bkData
-                    })
+                    });
+                    back.send('download-start', `Total pages: ${bkData.pages.length}`);
                     return;
                 }
                 //PROSE ONLY            
@@ -189,7 +190,6 @@ async function unscrambleImage(key, input, SUB_FOLDER, IMG_NAME) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const img = await loadImage(input); // Path to your original image
-        console.log(img.width + 'x' + img.height);
         for (const sub of key.Sub) {
             // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
             // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
@@ -212,14 +212,16 @@ async function unscrambleImage(key, input, SUB_FOLDER, IMG_NAME) {
         const out = fs.createWriteStream(dir); // Path where you want to save the unscrambled image
         const stream = canvas.createJPEGStream();
         stream.pipe(out);
-        out.on('finish', () => console.log('Image unscrambled successfully!'));
+        out.on('finish', () => {
+            back.send('download-start', `Downloaded ${IMG_NAME}`);
+        });
     } catch (error) {
         console.error('Error unscrambling image:', error);
     }
 }
 
 /**
- * this will dl.image
+ * this will dl image
  * @param {*} scrambledImageUrl
  */
 async function dlImage(keyUrl, scrambledImageUrl, SUB_FOLDER, IMG_NAME) {
@@ -231,18 +233,10 @@ async function dlImage(keyUrl, scrambledImageUrl, SUB_FOLDER, IMG_NAME) {
 
         // Download the key JSON
         const { data: key } = await axios.get(keyUrl);
+
+        // Unscramble and download the images
         unscrambleImage(key, scrambledImage, SUB_FOLDER, IMG_NAME);
     } catch (error) {
         console.error('Error:', error.message);
     }
-    // axios({
-    //     method: "GET",
-    //     url: scrambledImageUrl,
-    //     responseType: "stream"
-    // }).then(res => {
-    //     res.data.pipe(fs.createWriteStream(dir));
-    //     res.data.on("end", () => {
-    //         console.log("download complete");
-    //     });
-    // });
 }
