@@ -1859,12 +1859,12 @@ const key = {
         }
     ]
 };
-async function unscrambleImage(data,inputPath) {
+async function unscrambleImage(data, inputPath) {
     try {
         const pageId = data.PageId;
         let originalHeight = data.PageHeight;
         let originalWidth = data.PageWidth;
-        
+
         // Default values if original height/width are not provided
         if (originalHeight <= 0) {
             originalHeight = 1100;
@@ -1876,29 +1876,35 @@ async function unscrambleImage(data,inputPath) {
         const tileSize = 50;
         const borderWidth = 16;
         const scaleFactor = 1; // Adjust if necessary
-        
-        const canvasHeight = tileSize * parseInt(data.Y) || originalHeight;
-        const canvasWidth = tileSize * parseInt(data.X) || originalWidth;
+
+        // const canvasHeight = tileSize * parseInt(data.Y) || originalHeight;
+        // const canvasWidth = tileSize * parseInt(data.X) || originalWidth;
+
+        // The above logic for "tilesize * data.x, and y" doesn't work, adds a whitish margin (used by rekhta idk why and how). So Just use original ones as per api key. 
+        const canvasWidth = originalWidth;
+        const canvasHeight = originalHeight;
+
 
         const canvas = createCanvas(canvasWidth, canvasHeight);
         // const canvas = createCanvas(originalWidth, originalHeight);
         const ctx = canvas.getContext('2d');
         // ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.clearRect(0, 0, canvas.width,canvas.height);
-        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
         const img = await loadImage(inputPath); // Path to your original image
-        console.log(img.width+'x'+img.height);
+        console.log(originalWidth, originalHeight, canvasWidth, canvasHeight, canvas.width, canvas.height, tileSize * parseInt(data.X, tileSize * parseInt(data.Y)));
+        console.log(img.width + 'x' + img.height);
         for (const sub of data.Sub) {
             // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
             // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
             ctx.drawImage(
                 img,
-                sub.X1 * (tileSize+16),
-                sub.Y1 * (tileSize+16),
+                sub.X1 * (tileSize + 16),
+                sub.Y1 * (tileSize + 16),
                 tileSize,
                 tileSize,
-                (sub.X2 * tileSize) ,
-                (sub.Y2 * tileSize) ,
+                (sub.X2 * tileSize),
+                (sub.Y2 * tileSize),
                 tileSize,
                 tileSize
             );
